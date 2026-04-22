@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  mqtt:
+    image: eclipse-mosquitto
+    ports:
+      - "1883:1883"
+
+  publisher:
+    build: ./publisher
+    depends_on:
+      - mqtt
+    develop:
+      watch:
+        - action: sync
+          path: ./publisher
+          target: /app
+
+  backend:
+    build: ./backend
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mqtt
+    develop:
+      watch:
+        - action: sync
+          path: ./backend
+          target: /app
+
+  frontend:
+    build: ./frontend/dashboard
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    develop:
+      watch:
+        - action: sync
+          path: ./frontend/dashboard
+          target: /app

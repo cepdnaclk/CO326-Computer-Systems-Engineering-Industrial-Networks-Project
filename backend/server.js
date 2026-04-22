@@ -21,7 +21,7 @@ const io = new Server(server,{
   cors: {origin: "*"}
 });
 
-// connection  >> backend with publisher
+// connection throgh mqtt >> backend with publisher
 client.on("connect", () => {
   console.log("Connected to MQTT");
   client.subscribe("iot/sensor");
@@ -48,11 +48,6 @@ client.on("message", (topic, message) => {
   }
 });
 
-
-// api to return received data
-app.get("/data", (req, res) => {
-  res.json(latestData);
-});
 
 
 server.listen(5000, () => {

@@ -16,9 +16,6 @@ ML/
 .DS_Store
 Thumbs.db
 
-# Docker files
-Dockerfile
-docker-compose.yml
-**/Dockerfile
-**/docker-compose.yml
-docker/
+
+# other
+subscriber.py
