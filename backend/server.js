@@ -1,8 +1,9 @@
 const express = require("express");
 const mqtt = require("mqtt");
 const cors = require("cors");
-const http = require("http")
-const {Server} = require("socket.io")
+const http = require("http");
+const {Server} = require("socket.io");
+const axios = require('axios');
 
 // app
 const app = express();
@@ -12,7 +13,7 @@ app.use(cors());
 // create a socket server for this
 const server = http.createServer(app)
 
-let latestData = {};
+let rawData = {};
 
 const client = mqtt.connect(process.env.MQTT_URL || "mqtt://mqtt:1883");
 
@@ -29,20 +30,31 @@ client.on("connect", () => {
 
 
 // add to list when msg received
-client.on("message", (topic, message) => {
+client.on("message", async (topic, message) => {
 
   // verify topic
   if (topic== "iot/sensor"){
     try {
-      latestData = JSON.parse(message.toString());
+      rawData = JSON.parse(message.toString());
 
-      console.log("Received:", latestData);
+      // model to redictt anomaly
+      const response = await axios.post('http://ai-brain:5001/predict',{
+          temp: rawData.temperature,
+          hum: rawData.humidity
+      });
+
+      const { anomaly } = response.data;
+
+      console.log(`Temp: ${rawData.temperature} | Anomaly: ${anomaly}`);
 
       // real time data push to frontend
-      io.emit("sensor-data", latestData);
+      io.emit("sensor-data", {
+        ...rawData,
+        anomaly: anomaly
+      });
 
     } catch (err) {
-      console.log("Invalid message");
+      console.error("AI Brain Error:", err.message);
     }
 
   }
