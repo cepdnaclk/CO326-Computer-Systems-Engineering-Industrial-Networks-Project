@@ -262,11 +262,17 @@ function estimateRul(telemetry, anomalyScore) {
     telemetry.relayFeedback === "OPEN"
       ? remainingLifeHours
       : remainingLifeHours / Math.max(stress, 0.1);
-  const remainingLifePercent = (remainingLifeHours / DESIGN_LIFE_HOURS) * 100;
+  const remainingLifePercent = clamp(
+    (currentConditionRulHours / DESIGN_LIFE_HOURS) * 100,
+    0,
+    100,
+  );
+  const assetLifePercent = (remainingLifeHours / DESIGN_LIFE_HOURS) * 100;
 
   return {
     rulHours: round(currentConditionRulHours, 1),
     remainingLifePercent: round(remainingLifePercent, 1),
+    assetLifePercent: round(assetLifePercent, 1),
     accumulatedDamageHours: round(accumulatedDamageHours, 4),
     thermalStressIndex: round(stress, 2),
     status: rulStatus(telemetry.motorTemperatureC, remainingLifePercent),
@@ -295,6 +301,7 @@ function writeToHistorian(data) {
     .floatField("anomaly_score", data.anomalyScore)
     .floatField("rul_hours", data.rul.rulHours)
     .floatField("remaining_life_percent", data.rul.remainingLifePercent)
+    .floatField("asset_life_percent", data.rul.assetLifePercent)
     .floatField("thermal_stress_index", data.rul.thermalStressIndex)
     .floatField("accumulated_damage_hours", data.rul.accumulatedDamageHours)
     .booleanField("over_temperature", data.overTemperature)
